@@ -38,7 +38,7 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: nginx
-        IMAGE_TAG: nodejs_demo_image
+        IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -57,6 +57,22 @@ jobs:
     
     # - name: Deploy to DigitalOcean Kubernetes
     #   run: kubectl apply -f $GITHUB_WORKSPACE/deployment.yml
+    
+    - name: Update image in deployment.yaml using envsubst
+        env:
+          IMAGE: ${{ steps.login-ecr.outputs.registry }}/nginx:${{ github.sha }}
+        run: |
+          envsubst < deployment.yaml > deployment.temp.yaml
+          mv deployment.temp.yaml deployment.yaml
+          
+    - name: Update kube config
+      env:
+        EKS_CLUSTER_NAME: app-cluster-prod
+      run: aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+    - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f deployment.yaml
     
     
 
