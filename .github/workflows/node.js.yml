@@ -59,9 +59,9 @@ jobs:
     #   run: kubectl apply -f $GITHUB_WORKSPACE/deployment.yml
     
     - name: Update image in deployment.yaml using envsubst
-        env:
-          IMAGE: ${{ steps.login-ecr.outputs.registry }}/nginx:${{ github.sha }}
-        run: |
+      env:
+        IMAGE: ${{ steps.login-ecr.outputs.registry }}/nginx:${{ github.sha }}
+      run: |
           envsubst < deployment.yaml > deployment.temp.yaml
           mv deployment.temp.yaml deployment.yaml
           
